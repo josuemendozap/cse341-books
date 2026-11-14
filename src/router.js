@@ -1,8 +1,50 @@
 import express from 'express';
-import { getBooksHandler, getBookByIdHandler } from './controllers/books.js';
+import { getBooksHandler, getBookByIdHandler, createBookHandler, updateBookHandler, deleteBookHandler } from './controllers/books.js';
 import { getAuthorsHandler, getAuthorByIdHandler, createAuthorHandler, updateAuthorHandler, deleteAuthorHandler } from './controllers/authors.js';
 
 const router = express.Router();
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Book:
+ *       type: object
+ *       required:
+ *         - id
+ *         - authorId
+ *         - title
+ *         - publicationDate
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: b1
+ *         authorId:
+ *           type: string
+ *           example: a1
+ *         title:
+ *           type: string
+ *           example: 1984
+ *         publicationDate:
+ *           type: string
+ *           example: "1949-06-08"
+ *     Author:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *         - birthYear
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: a1
+ *         name:
+ *           type: string
+ *           example: George Orwell
+ *         birthYear:
+ *           type: integer
+ *           example: 1903
+ */
 
 /**
  * @openapi
@@ -14,6 +56,12 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Books returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Book'
  *       500:
  *         description: Unable to retrieve books
  */
@@ -36,12 +84,130 @@ router.get('/books', getBooksHandler);
  *     responses:
  *       200:
  *         description: Book returned successfully
+ *         content:
+ *           aplication/json:
+ *             schema:
+ *               $ref: '#components/schemas/book'
  *       404:
  *         description: Book not found
  *       500:
  *         description: Unable to retrieve book
  */
 router.get('/books/:id', getBookByIdHandler);
+
+/**
+ * @openapi
+ * /books:
+ *   post:
+ *     summary: Create a new book
+ *     tags:
+ *       - Books
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Book'
+ *           example:
+ *             id: b4
+ *             authorId: a1
+ *             title: Animal Farm
+ *             PublicationDate: "1945-08-17"
+ *     responses:
+ *       201:
+ *         description: Book successfully created
+ *         content:
+ *           application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Book'
+ *       400:
+ *         description: Missing or invalid fields or author does not exist
+ *       409:
+ *         description: A book with this ID already exists
+ *       500:
+ *         description: Internal Server Error
+ */
+router.post('/books', createBookHandler);
+
+/**
+ * @openapi
+ * /books/{id}:
+ *   put:
+ *     summary: Update an existing book
+ *     tags:
+ *       - Books
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The custom book ID
+ *         schema:
+ *           type: string
+ *         example: b1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - authorId
+ *               - title
+ *               - publicationDate
+ *             properties:
+ *               authorId:
+ *                 type: string
+ *                 example: a1
+ *               title:
+ *                 type: string
+ *                 example: Nineteen Eighty-Four
+ *               publicationDate:
+ *                 type: string
+ *                 example: "1949-06-08"
+ *           example:
+ *             authorId: a1
+ *             title: Nineteen Eighty-Four
+ *             publicationDate: "1949-06-08"
+ *     responses:
+ *       200:
+ *         description: Book successfully updated
+ *         content:
+ *            application/json:
+ *               shcema:
+ *                  $ref: '#/components/schemas/Book'
+ *       400:
+ *         description: Missing or invalid fields or author does not exist
+ *       404:
+ *         description: Book not found
+ *       500:
+ *         description: Internal Server Error
+ */
+router.put('/books/:id', updateBookHandler);
+
+/**
+ * @openapi
+ * /books/{id}:
+ *   delete:
+ *     summary: Delete a book
+ *     tags:
+ *       - Books
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The custom book ID
+ *         schema:
+ *           type: string
+ *         example: b1
+ *     responses:
+ *       204:
+ *         description: Book successfully deleted
+ *       404:
+ *         description: Book not found
+ *       500:
+ *         description: Internal Server Error
+ */
+router.delete('/books/:id', deleteBookHandler);
 
 /**
  * @openapi
